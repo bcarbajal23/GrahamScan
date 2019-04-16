@@ -46,7 +46,7 @@ let GrahamScan = (function() {
 
     GrahamScan.prototype.run = function(){
     
-        if(index >=30) return;
+        if(index >= sortedPts.length) return;
         console.log("index: "+index)
         if(index <= numPts){
             let last = convexHull.length;

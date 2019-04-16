@@ -39,7 +39,7 @@ function setup(){
 
 function draw(){
     background('#ffffcc');
-
+    frameRate(fr);
     if(run){
         gscan.run();
     }
@@ -103,7 +103,7 @@ function setUpButtons(){
  */
 function generatePoints(){
     let result = [];
-    for(let i = 0; i < 30; i++){
+    for(let i = 0; i < 100; i++){
         result.push(new Point(random(10,1190), random(10,690)));
     }
     // console.log(result);
