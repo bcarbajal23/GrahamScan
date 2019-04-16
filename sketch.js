@@ -103,7 +103,7 @@ function setUpButtons(){
  */
 function generatePoints(){
     let result = [];
-    for(let i = 0; i < 100; i++){
+    for(let i = 0; i < 200; i++){
         result.push(new Point(random(10,1190), random(10,690)));
     }
     // console.log(result);
