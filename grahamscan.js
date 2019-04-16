@@ -3,7 +3,7 @@
  * 
  * Class: GrahamScan
  * 
- * Description:
+ * Description: 
  * 
  */
 
