@@ -1,10 +1,21 @@
+/**
+ * Authur: Carlos Carbajal
+ * 
+ * Class: GrahamScan
+ * 
+ * Description:
+ * 
+ */
 
 let GrahamScan = (function() {
+    /**** GLOBALS *****/
     let lowestPtP = null;
-    let index = 0;
+    let index;
     let sortedPts;
     let numPts; 
-    let convexHull; 
+    let convexHull;
+
+    //Constructor
     function GrahamScan(points){
         this.points = points;
         numPts = points.length;
@@ -15,13 +26,20 @@ let GrahamScan = (function() {
         let mods = findLowest(this.points);
         lowestPtP = mods.low;
         this.points = mods.pts;
-        // console.log(this.points)
         this.points.shift(this.points);
         sortedPts = this.points;
 
+        /**
+         * This sorts the set of points based of on the 
+         * angle from the bottom most point. 
+         * 
+         * JavaScripts sort method uses Merge Sort,
+         * Gives us the runtime of O(nlogn).
+         */
         sortedPts.sort(function(p1,p2){
             let orient = orientation(lowestPtP,p1,p2);
-            // console.log(orient)
+            //If 2 points are colinear then the closest one is to
+            // lowestPtP comes first.
             if(orient == 0){
                 if(calcDist(lowestPtP,p1) >= calcDist(lowestPtP,p2)){
                     return 1;
@@ -31,24 +49,31 @@ let GrahamScan = (function() {
             }
             return orient;
         });
-        // sortedPts = mergeSort(this.points);
 
+        // Since we are sorting in respect to lowestPtP, we added it to the head of the array.
         sortedPts.unshift(lowestPtP);
-        // console.log(sortedPts)
-        // console.log(lowestPtP)z
-        convexHull.push(sortedPts[0]);
-        convexHull.push(sortedPts[1]);
-        convexHull.push(sortedPts[2]);
-        // console.log(convexHull)
-        
-        index = 2;
+
+        index = -1;
+        this.calculateHull = false;
     }
 
+    /**
+     * run()
+     * Description: This is the main driver of the Graham Scan Algorithm
+     */
     GrahamScan.prototype.run = function(){
     
-        if(index >= sortedPts.length) return;
-        console.log("index: "+index)
-        if(index <= numPts){
+        if(index >= sortedPts.length) { calculateHull = false; return};
+
+        //Initital 3 points added to the boundary of convex hull
+        if(index < 0){
+            convexHull.push(sortedPts[0]);
+            convexHull.push(sortedPts[1]);
+            convexHull.push(sortedPts[2]);
+            
+            index = 2;
+        }else if(index <= numPts){
+            //Get last 3 elems in array (top 3 elems in stack)
             let last = convexHull.length;
             let p = convexHull[last-3];
             let c = convexHull[last-2];
@@ -56,21 +81,18 @@ let GrahamScan = (function() {
     
             let orient = orientation(p, c, n);
             
-            // console.log(convexHull)
             if(orient > 0){
                 if(convexHull.length > 3){
-                    console.log("Remove cuppa")
+                    //This is the backtracing of Graham Scan
                     while(orient > 0 && convexHull.length > 3){
+                        /**
+                         * Emulate the Stack used in algorithm
+                         */
+                        let lastPt = convexHull.pop(); //save the last element (n) from array and pop it
+                        convexHull.pop(); //Remove point that causes right hand turn (c)
+                        convexHull.push(lastPt); //add (n) back into 'stack' and becomes the new (c)
                         
-                        // let removeIndex = convexHull.indexOf(c);
-                        
-                        // let temp = convexHull.splice(0,removeIndex);
-                        // temp.concat(convexHull.splice(removeIndex+1));
-                        
-                        // convexHull = temp;
-                        let lastPt = convexHull.pop();
-                        convexHull.pop();
-                        convexHull.push(lastPt);
+                        // Recalulcate the orientation of the next 3 points
                         last = convexHull.length;
     
                         p = convexHull[last-3];
@@ -79,52 +101,73 @@ let GrahamScan = (function() {
                         orient = orientation(p, c, n);
                     }
                 }else{
-                    console.log(convexHull)
+                    /**
+                     * Same work as above except without recalcuating the orientation
+                     */
                     let lastPt = convexHull.pop();
                     convexHull.pop();
                     convexHull.push(lastPt);
-                    console.log(convexHull)
                     if(index< numPts){
-                        console.log("add!!!!!")
                         convexHull.push(sortedPts[(index+1)%numPts]);
                     }
                     index++;
                 }
     
             }else if(orient <= 0 && index < numPts){
-                console.log("Add points")
                 convexHull.push(sortedPts[(index+1)%numPts]);
                 index++;
             }
         }
-        // console.log(convexHull.length)
-        // console.log(convexHull)
     }
 
+    /**
+     * displayHull()
+     * Descripiton: Display the boundary if convex hull
+     */
     GrahamScan.prototype.displayHull = function(){
-        stroke("orange")
-        if(convexHull.length > 1){
-            for(let i=0; i < convexHull.length-1; i++){
-                
-                // this.convexHull[i].setColor("orange")
-                
-                // this.convexHull[i].display();
-                let p0 = convexHull[i]
-                // p0.setColor("orange");
-                let p1 = convexHull[i+1]
-                // p1.setColor("orange");
-                // strokeWeight(5)
+        
+        if(this.calculateHull && convexHull.length > 1){
+            for(let i=2; i < convexHull.length; i++){
+                // convexHull[i].setColor("orange")
+                let p0 = convexHull[i-2];
+                let p1 = convexHull[i-1];
+                let p2 = convexHull[i];
+                stroke("orange");
+                strokeWeight(5);
                 line(p0.xCoor,p0.yCoor, p1.xCoor,p1.yCoor);
+                //CHeck if the connect to back to the starting point
+                if(convexHull[0] != convexHull[i]){
+                    stroke("black");
+                }else{
+                    stroke("orange");
+                }
+                line(p1.xCoor,p1.yCoor, p2.xCoor,p2.yCoor);
             }
         }
-        
     }
 
+    /**
+     * drawPoints()
+     * Decscription: Display all the points
+     */
     GrahamScan.prototype.drawPoints = function(){
         for(let i=0; i < this.points.length; i++){
             this.points[i].display();
         }
     }
+
+    GrahamScan.prototype.calculateCH = function(){
+        return this.calculateHull = !this.calculateHull;
+    }
+
+    GrahamScan.prototype.isFinished = function(){
+        return this.calculateHull;
+    }
+
+    GrahamScan.prototype.numPoints = function(){
+        return convexHull.length;
+    }
+
 
     /********************************************
      * 
@@ -160,7 +203,7 @@ let GrahamScan = (function() {
 
     /**
      * orientation()
-     * 
+     * Decription:  This calculates the which side the next point will land
      * @param {*} p 
      * @param {*} q 
      * @param {*} r 
@@ -170,91 +213,22 @@ let GrahamScan = (function() {
         let vec1 = createVector(q.xCoor-p.xCoor, q.yCoor-p.yCoor);
         let vec2 = createVector(r.xCoor-q.xCoor, r.yCoor-q.yCoor);
 
+        /**
+         * P5.js Crossproduct: 
+         *       (q.yCoor-p.yCoor) * (r.xCoor-q.xCoor) - (q.xCoor-p.xCoor)*(r.yCoor-q.yCoor);
+         */
         let result = vec1.cross(vec2);
-        // let result = (q.yCoor-p.yCoor) * (r.xCoor-q.xCoor) - (q.xCoor-p.xCoor)*(r.yCoor-q.yCoor);
-        // console.log(result)
+
+        
         if(result.z == 0.0){
             return 0; //Collinear
         }else if(result.z > 0.0){
-            return 1; //Clockwise turn
+            return 1; //Right turn
         }else{
-            return -1; //Counterclockwise turn   
+            return -1; //left turn   
         } 
     }
 
-    /**
-     * mergeSort()
-     * Decription: This function uses the merge sort algorithm to sort the set of points
-     * @param {*} tempPoints 
-     */
-    function mergeSort(tempPoints){
-        if(tempPoints.length === 1){
-            return tempPoints;
-        }
-        
-        const middle = Math.floor(tempPoints.length / 2);
-        const left = tempPoints.slice(0, middle);
-        const right = tempPoints.slice(middle);
-
-        return merge(mergeSort(left),mergeSort(right));
-    }
-
-    /**
-     * 
-     * @param {*} pt1 
-     * @param {*} pt2 
-     */
-    function calcDist(pt1, pt2){
-        let vect1 = createVector(pt1.xCoor,pt1.yCoor);
-        let vect2 = createVector(pt2.xCoor,pt2.yCoor);
-
-        return vect1.dist(vect2);
-    }
-
-    /**
-     * merge()
-     * Decription: Helper function for mergeSort function above.
-     * @param {*} leftArr 
-     * @param {*} rightArr 
-     */
-    function merge(leftArr, rightArr){
-        // console.log("Merge: ")
-        let sortedArr = []
-        let leftIndex = 0;
-        let rightIndex = 0;
-
-        while(leftIndex < leftArr.length && rightIndex < rightArr.length){
-            
-            let orient = orientation(lowestPtP, leftArr[leftIndex], rightArr[rightIndex]);
-
-            if(orient == 0){
-                let dist1 = calcDist(this.lowestPtP, leftArr[leftIndex]);
-                let dist2 = calcDist(this.lowestPtP, rightArr[rightIndex]);
-
-                if(dist1 < dist2){
-                    sortedArr.push(leftArr[leftIndex]);
-                    sortedArr.push(rightArr[rightIndex]);
-                    leftIndex++;
-                    rightIndex++;    
-                }else{
-                    sortedArr.push(rightArr[rightIndex]);
-                    sortedArr.push(leftArr[leftIndex]);
-                    leftIndex++;
-                    rightIndex++;
-                }
-            }else if(orient < 1){
-                sortedArr.push(leftArr[leftIndex]);
-                leftIndex++;
-            }else{
-                sortedArr.push(rightArr[rightIndex]);
-                rightIndex++;
-            }
-            
-        }
-
-        return sortedArr.concat(leftArr.slice(leftIndex)).concat(rightArr.slice(rightIndex));
-
-    }
     return GrahamScan;
 })();
     

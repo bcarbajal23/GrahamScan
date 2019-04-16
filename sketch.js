@@ -1,50 +1,40 @@
 /**
  * Authur: Carlos Carbajal
+ * 
+ * sketch.js
+ * 
+ * Decription: This is the main part that draws everything on screen.
  */
 let points;
 let hullPoints;
-let currHullIndex;
-let pointIndex;
 let run;
-let bestAngle;
-let angle;
-let bestPoint;
-let fr = 10;
+let initRun;
+let fr = 30;
 let lowestPtP; 
 
 function setup(){
     createCanvas(1200, 700);
-    frameRate(fr);
-    // points = [];
-    // hullPoints = [];
-    points = generatePoints();
-    // lowestPtP = findLowest();
-    // hullPoints.push(lowestPtP);
-    run=true;
-    gscan = new GrahamScan(points);   
-    // points.shift();
-    // points = mergeSort(points);
-    // points.unshift(lowestPtP);
-    
-    setUpButtons();
 
-    //Initialize globals
-    // currHullIndex = 0;
-    // pointIndex=0;
-    // bestAngle=0;
-    // angle=0;
-    // bestPoint = -1;
+    points = generatePoints();
+    run=false; initRun=true;
+    hullPoints = new GrahamScan(points);   
+        
+    setUpButtons();
     
 }
 
 function draw(){
     background('#ffffcc');
     frameRate(fr);
+    strokeWeight(1);
     if(run){
-        gscan.run();
+        hullPoints.run();
+        if(!hullPoints.isFinished()){
+            run = false;
+        }
     }
-    gscan.drawPoints();
-    gscan.displayHull();
+    hullPoints.drawPoints();
+    hullPoints.displayHull();
 }
 
 function setUpButtons(){
@@ -53,21 +43,19 @@ function setUpButtons(){
     startPauseButton.class("btn btn-primary");
     startPauseButton.mousePressed(function(){
         run = !run;
-        // console.log(run)
+        if(hullPoints.numPoints()==0){
+            hullPoints.calculateCH();
+        }
     });
 
     resetButton = createButton("Reset");
     resetButton.class("btn btn-primary");    
     resetButton.mousePressed(function(){
-        points = [];
         hullPoints = [];
-        currHullIndex = 0;
-        pointIndex=0;
-        bestAngle=0;
-        angle=0;
-        bestPoint = -1;
-        gscan = new GrahamScan();
+        points = [];
+        run = false;
         points = generatePoints();
+        hullPoints= new GrahamScan(points);
 
     });
 
@@ -79,18 +67,16 @@ function setUpButtons(){
         }else{
             fr++;
         }
-        frameRate(fr);
     });
 
     slowdownButton = createButton("Slow Down");
     slowdownButton.class("btn btn-secondary");
     slowdownButton.mousePressed(function(){
-        if(fr==10){
-            fr = 0;
+        if(fr==5){
+            fr = 5;
         }else{
             fr--;
         }
-        frameRate(fr);
     });
 }
 
@@ -103,10 +89,8 @@ function setUpButtons(){
  */
 function generatePoints(){
     let result = [];
-    for(let i = 0; i < 200; i++){
+    for(let i = 0; i < 300; i++){
         result.push(new Point(random(10,1190), random(10,690)));
     }
-    // console.log(result);
-    // run = false;
     return result; 
 }
