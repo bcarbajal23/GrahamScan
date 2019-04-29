@@ -229,6 +229,17 @@ let GrahamScan = (function() {
         } 
     }
 
+    /**
+     * 
+     * @param {*} pt1 
+     * @param {*} pt2 
+     */
+    function calcDist(pt1, pt2){
+        let vect1 = createVector(pt1.xCoor,pt1.yCoor);
+        let vect2 = createVector(pt2.xCoor,pt2.yCoor);
+
+        return vect1.dist(vect2);
+    }
     return GrahamScan;
 })();
     
